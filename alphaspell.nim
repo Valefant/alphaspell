@@ -14,11 +14,11 @@ Spells out characters in words to standard output.
                de, en, it [default: en]
 -h, --help     Display this help and exit
 -V, --version  Output version information and exit"""
-  quit(0)
+  quit 0
 
 proc printVersion() =
   echo "alphaspell v.01"
-  quit(0)
+  quit 0
 
 const supportedLanguages = toHashSet(["de", "en", "it"])
 var activeLanguage = "en"
@@ -38,27 +38,26 @@ while true:
     else:
       case p.key
       of "l", "lang":
-        activeLanguage = p.val
+        activeLanguage = p.val.toLowerAscii()
   else:
     discard
 
 if activeLanguage notin supportedLanguages:
   quit(&"Language {activeLanguage} is not supported!")
 
-let stream = newFileStream(stdin)
-let reads = 
+let reads =
   readFile(&"translations/{activeLanguage}.txt")
   .splitLines()
-  .filter(proc (line: string): bool = line.len != 0)
-  .map(proc (line: string): string = strip(line))
+  .filterIt(it.len != 0)
+  .mapIt(it.strip())
 let translations = zip(toSeq('0' .. '9') & toSeq('a' .. 'z'), reads).toTable
 
 var input = ""
+let stream = newFileStream(stdin)
 while stream.readLine(input):
-  let sanitizedInput = toLowerAscii(strip(input))
+  let sanitizedInput = input.strip().toLowerAscii()
   for c in sanitizedInput:
     if translations.hasKey(c):
       echo &"{c} | {translations[c]}"
     else:
       echo &"{c}"
-      
